@@ -179,8 +179,9 @@ static void BM_Latency_Add(benchmark::State &state) {
   std::thread logger(logging_thread_func, std::ref(*trade_queue), std::ref(system_running),
                      "logging/latency_add_trades.txt");
 
-  std::vector<uint64_t> latencies;
-  latencies.reserve(state.max_iterations * (scenario.makers.size() + scenario.takers.size()));
+  size_t max_samples = state.max_iterations * (scenario.makers.size() + scenario.takers.size());
+  std::vector<uint64_t> latencies(max_samples, 0);
+  size_t lat_idx = 0;
 
   for (auto _ : state) {
     state.PauseTiming();
@@ -190,17 +191,13 @@ static void BM_Latency_Add(benchmark::State &state) {
     for (const auto &order : scenario.makers) {
       uint64_t start = get_cycles();
       book->add_order(order.id, order.quantity, order.price, order.side);
-      uint64_t end = get_cycles();
-
-      latencies.push_back(end - start);
+      latencies[lat_idx++] = get_cycles() - start;
     }
 
     for (const auto &order : scenario.takers) {
       uint64_t start = get_cycles();
       book->add_order(order.id, order.quantity, order.price, order.side);
-      uint64_t end = get_cycles();
-
-      latencies.push_back(end - start);
+      latencies[lat_idx++] = get_cycles() - start;
     }
 
     benchmark::DoNotOptimize(*book);
@@ -231,8 +228,9 @@ static void BM_Latency_Cancel(benchmark::State &state) {
 
   std::thread logger(logging_thread_func, std::ref(*trade_queue), std::ref(system_running),
                      "logging/latency_cancel_trades.txt");
-  std::vector<uint64_t> latencies;
-  latencies.reserve(state.max_iterations * scenario.cancel_sequence.size());
+  size_t max_samples = state.max_iterations * (scenario.makers.size() + scenario.takers.size());
+  std::vector<uint64_t> latencies(max_samples, 0);
+  size_t lat_idx = 0;
 
   for (auto _ : state) {
     state.PauseTiming();
@@ -245,9 +243,7 @@ static void BM_Latency_Cancel(benchmark::State &state) {
     for (const auto &order : scenario.cancel_sequence) {
       uint64_t start = get_cycles();
       book->cancel_order(order.id, order.price, order.side);
-      uint64_t end = get_cycles();
-
-      latencies.push_back(end - start);
+      latencies[lat_idx++] = get_cycles() - start;
     }
   }
 

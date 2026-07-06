@@ -77,6 +77,12 @@ To limit project scope, the following assumptions have been made:
 - Branch predictor tuning using C++20 `[[likely]]` and `[[unlikely]]` attributes
 - Optimized hot path data flow to minimize CPU register pressure
 
+## Current Bottlenecks & Future Optimizations
+
+Profiling using `perf report` under benchmark (random Add/Cancel sequences) revealed a hardware bottleneck in the matching loop:
+
+- Spatial Locality: Orders are added to the memory_pool_ sequentially which hurts price local prefetching for matching orders and causes LLC (Last Level Cache) misses. Implementing a slab allocator would resolve this.
+
 ## License
 
 GPLv3

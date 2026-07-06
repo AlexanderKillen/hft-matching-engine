@@ -80,4 +80,4 @@ Throughput of adding orders is around ~12.5 million ops/sec. Cencelling orders i
 
 Latency: Median latency p50 sits at 35 ns for Add and 21 ns for Cancel.
 
-Tail Latency p99.99: The spikes in the upper percentiles (900 ns for Add) are believed to be attributed to OS jitter (context switches, kernel interrupts), rather than algorithmic bottlenecks. In a production environment, this is mitigated via CPU isolation (isolcpus) and a real-time kernel.
+Tail Latency p99.99: The spikes in the upper percentiles (900 ns for Add) was found through perf analysis to be because of last level cache misses due the non-spatial locality of orders due to orders being added sequentially to the memory_pool_. Use a slab allocator.

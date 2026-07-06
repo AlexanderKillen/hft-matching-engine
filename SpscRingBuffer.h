@@ -23,24 +23,11 @@ public:
       }
     }
 
-    buffer_[current_tail & mask_] = T{std::forward<Args>(args)...};
-
-    tail_.store(current_tail + 1, std::memory_order_release);
-    return true;
-  }
-
-  bool try_push(T &&item) {
-    const size_t current_tail = tail_.load(std::memory_order_relaxed);
-
-    if ((current_tail - head_cached_) == capacity_) {
-      head_cached_ = head_.load(std::memory_order_acquire);
-      if ((current_tail - head_cached_) == capacity_) {
-        return false; // Kön är full
-      }
+    if constexpr (!std::is_trivially_destructible_v<T>) {
+      buffer_[current_tail & mask_].~T();
     }
 
-    buffer_[current_tail & mask_] = std::move(item);
-
+    std::construct_at(&buffer_[current_tail & mask_], std::forward<Args>(args)...);
     tail_.store(current_tail + 1, std::memory_order_release);
     return true;
   }

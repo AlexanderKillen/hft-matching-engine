@@ -151,11 +151,6 @@ uint32_t OrderBook::execute_order(uint64_t id, uint32_t quantity, uint32_t price
       Trade receipt;
       bool success;
       if (match.quantity <= remaining_qty) {
-        /*receipt = {.id_buyer = static_cast<uint32_t>(id),
-                   .id_seller = match.id,
-                   .id_transaction = ++id_transaction_,
-                   .price = lowest_ask_,
-                   .quantity = match.quantity};*/
         success = trade_queue_.try_emplace(static_cast<uint32_t>(id), // 1. id_buyer
                                            match.id,                  // 2. id_seller
                                            ++id_transaction_,         // 3. id_transaction
@@ -165,12 +160,6 @@ uint32_t OrderBook::execute_order(uint64_t id, uint32_t quantity, uint32_t price
         remaining_qty -= match.quantity;
         dequeue_order(curve[lowest_ask_].first, lowest_ask_, SELL);
       } else {
-        /* receipt = {.id_buyer = static_cast<uint32_t>(id),
-                    .id_seller = match.id,
-                    .id_transaction = ++id_transaction_,
-                    .price = lowest_ask_,
-                    .quantity = remaining_qty};
-               */
         success = trade_queue_.try_emplace(static_cast<uint32_t>(id), // 1. id_buyer
                                            match.id,                  // 2. id_seller
                                            ++id_transaction_,         // 3. id_transaction
@@ -190,11 +179,6 @@ uint32_t OrderBook::execute_order(uint64_t id, uint32_t quantity, uint32_t price
       Trade receipt;
       bool success;
       if (match.quantity <= remaining_qty) {
-        /*receipt = {.id_buyer = match.id,
-                   .id_seller = static_cast<uint32_t>(id),
-                   .id_transaction = ++id_transaction_,
-                   .price = highest_bid_,
-                   .quantity = match.quantity};*/
         success = trade_queue_.try_emplace(match.id,                  // 1. id_buyer
                                            static_cast<uint32_t>(id), // 2. id_seller
                                            ++id_transaction_,         // 3. id_transaction
@@ -205,11 +189,6 @@ uint32_t OrderBook::execute_order(uint64_t id, uint32_t quantity, uint32_t price
         remaining_qty -= match.quantity;
         dequeue_order(curve[highest_bid_].first, highest_bid_, BUY);
       } else {
-        /*receipt = {.id_buyer = match.id,
-                   .id_seller = static_cast<uint32_t>(id),
-                   .id_transaction = ++id_transaction_,
-                   .price = highest_bid_,
-                   .quantity = remaining_qty};*/
         success = trade_queue_.try_emplace(match.id,                  // 1. id_buyer
                                            static_cast<uint32_t>(id), // 2. id_seller
                                            ++id_transaction_,         // 3. id_transaction
