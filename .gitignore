@@ -1,0 +1,6 @@
+.clang-format
+.clangd
+.editorconfig
+perf.data
+perf.data.old
+logging/
