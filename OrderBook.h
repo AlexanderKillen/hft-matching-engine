@@ -46,10 +46,10 @@ public:
 
 private:
   SpscRingBuffer<Trade> &trade_queue_;
-  static constexpr uint32_t kMaxPricesSek = 1000;
+  static constexpr uint32_t kMaxPriceSEK = 1000;
   static constexpr uint32_t kTicksPerSEK = 100; // [0.00 , 0.99] etc.
   // [999.00 , 999.99] + [1000.00]
-  static constexpr uint32_t kMaxPricesRaw = kMaxPricesSek * kTicksPerSEK;
+  static constexpr uint32_t kMaxPricesRaw = kMaxPriceSEK * kTicksPerSEK + 1;
   static constexpr uint32_t kMaxPrices = next_power_of_two(kMaxPricesRaw);
   static constexpr uint32_t kBitmapWords = kMaxPrices >> 6;
   static constexpr uint32_t kMaxOrders = 1U << 20; // About a million
