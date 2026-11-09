@@ -46,16 +46,17 @@ public:
 
 private:
   SpscRingBuffer<Trade> &trade_queue_;
-  static constexpr uint32_t MAX_PRICE_SEK = 1000;
-  static constexpr uint32_t TICKS_PER_SEK = 100;
-  static constexpr uint32_t RAW_MAX_PRICES = MAX_PRICE_SEK * TICKS_PER_SEK; // 100 000
-  static constexpr uint32_t MAX_PRICES = next_power_of_two(RAW_MAX_PRICES);
-  static constexpr uint32_t BITMAP_WORDS = MAX_PRICES >> 6;
-  static constexpr uint32_t MAX_ORDERS = 1U << 20; // About a million
+  static constexpr uint32_t kMaxPricesSek = 1000;
+  static constexpr uint32_t kTicksPerSEK = 100; // [0.00 , 0.99] etc.
+  // [999.00 , 999.99] + [1000.00]
+  static constexpr uint32_t kMaxPricesRaw = kMaxPricesSek * kTicksPerSEK;
+  static constexpr uint32_t kMaxPrices = next_power_of_two(kMaxPricesRaw);
+  static constexpr uint32_t kBitmapWords = kMaxPrices >> 6;
+  static constexpr uint32_t kMaxOrders = 1U << 20; // About a million
 
   using bitmapword_t = uint64_t;
 
-  static constexpr uint32_t BITMAP_WORDS_BITS = sizeof(bitmapword_t) * 8;
+  static constexpr uint32_t kBitmapWords_BITS = sizeof(bitmapword_t) * 8;
 
   uint32_t memory_pool_pop();
   void memory_pool_push(uint32_t index);
@@ -63,16 +64,16 @@ private:
   void dequeue_order(uint32_t index, uint32_t price, Side side);
   uint32_t execute_order(uint64_t id, uint32_t quantity, uint32_t price, Side side);
   void update_level(uint32_t word_index, Side side,
-                    std::array<bitmapword_t, BITMAP_WORDS> &active_bitmap);
+                    std::array<bitmapword_t, kBitmapWords> &active_bitmap);
 
-  Order memory_pool_[MAX_ORDERS];
-  uint32_t free_indices_[MAX_ORDERS];
-  uint32_t free_top_ = MAX_ORDERS - 1;
+  Order memory_pool_[kMaxOrders];
+  uint32_t free_indices_[kMaxOrders];
+  uint32_t free_top_ = kMaxOrders - 1;
 
-  OrderQueue bid_curve_[MAX_PRICES];
-  OrderQueue ask_curve_[MAX_PRICES];
-  std::array<bitmapword_t, BITMAP_WORDS> bid_bitmap_{};
-  std::array<bitmapword_t, BITMAP_WORDS> ask_bitmap_{};
+  OrderQueue bid_curve_[kMaxPrices];
+  OrderQueue ask_curve_[kMaxPrices];
+  std::array<bitmapword_t, kBitmapWords> bid_bitmap_{};
+  std::array<bitmapword_t, kBitmapWords> ask_bitmap_{};
 
   uint64_t id_transaction_ = 0;
 

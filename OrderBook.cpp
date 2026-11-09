@@ -12,18 +12,18 @@ OrderBook::OrderBook(SpscRingBuffer<Trade> &queue) : trade_queue_(queue) {
   std::memset(memory_pool_, 0, sizeof(memory_pool_));
   std::memset(free_indices_, 0, sizeof(free_indices_));
 
-  for (int i = 0; i < MAX_ORDERS; i++) {
+  for (int i = 0; i < kMaxOrders; i++) {
     free_indices_[i] = i;
   }
 }
 
 uint32_t OrderBook::memory_pool_pop() {
-  assert(free_top_ < MAX_ORDERS);
+  assert(free_top_ < kMaxOrders);
   return free_indices_[free_top_--];
 }
 
 void OrderBook::memory_pool_push(uint32_t index) {
-  assert(free_top_ + 1 < MAX_ORDERS);
+  assert(free_top_ + 1 < kMaxOrders);
   free_indices_[++free_top_] = index;
 }
 
@@ -63,18 +63,18 @@ void OrderBook::queue_order(uint32_t index, uint32_t price, Side side) {
 }
 
 void OrderBook::update_level(uint32_t word_index, Side side,
-                             std::array<bitmapword_t, BITMAP_WORDS> &active_bitmap) {
+                             std::array<bitmapword_t, kBitmapWords> &active_bitmap) {
   // incoming BUY order consumes ASK side (liquidity taker)
   // incoming SELL order consumes BID side (liquidity taker)
   // this function updates best price of the *opposite book side*
   if (side == SELL) {
     // side ate final order on ask -> lowest_ask_ is invalid
-    while (word_index < BITMAP_WORDS && active_bitmap[word_index] == 0) {
+    while (word_index < kBitmapWords && active_bitmap[word_index] == 0) {
       word_index++;
     }
-    if (word_index < BITMAP_WORDS) {
+    if (word_index < kBitmapWords) {
       // there is a 1 here somewhere. find it, and update
-      lowest_ask_ = word_index * BITMAP_WORDS_BITS + std::countr_zero(active_bitmap[word_index]);
+      lowest_ask_ = word_index * kBitmapWords_BITS + std::countr_zero(active_bitmap[word_index]);
     } else {
       lowest_ask_empty_ = true;
     }
@@ -85,8 +85,8 @@ void OrderBook::update_level(uint32_t word_index, Side side,
     }
     if (word_index > 0 || active_bitmap[word_index] != 0) {
       // there is a 1 here somewhere. find it, and update
-      highest_bid_ = word_index * BITMAP_WORDS_BITS +
-                     (BITMAP_WORDS_BITS - 1 - std::countl_zero(active_bitmap[word_index]));
+      highest_bid_ = word_index * kBitmapWords_BITS +
+                     (kBitmapWords_BITS - 1 - std::countl_zero(active_bitmap[word_index]));
     } else {
       highest_bid_empty_ = true;
     }
